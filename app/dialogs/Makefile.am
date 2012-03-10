@@ -21,6 +21,8 @@ libappdialogs_a_sources = \
 	\
 	about-dialog.c			\
 	about-dialog.h			\
+		tito-dialog.c			\
+	tito-dialog.h  \
 	channel-options-dialog.c	\
 	channel-options-dialog.h	\
 	convert-precision-dialog.c	\
