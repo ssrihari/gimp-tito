@@ -749,6 +749,8 @@
       <menuitem action="dialogs-tips" />
       <menuitem action="dialogs-about" />
       <separator />
+      <menuitem action="dialogs-action-search" />
+      <separator />
       <placeholder name="Programming" />
       <separator />
     </menu>
