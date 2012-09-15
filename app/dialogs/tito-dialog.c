@@ -848,6 +848,13 @@ tito_write_preferences (void)
 {
  FILE *fp;
  fp=fopen(preference_file_path,"w");
+
+ if(fp==NULL)
+  {
+    g_message("Unable to open preferences file to write");
+   return;
+  }
+
  if(fp == NULL)
     return;
  fprintf(fp,"%d %f %f %d %f %d %d %lf", PREF.POSITION,PREF.POSITION_X, PREF.POSITION_Y,
