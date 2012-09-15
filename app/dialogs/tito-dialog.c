@@ -32,6 +32,7 @@
 #include "gimp-intl.h"
 
 #define           MAX_HISTORY_ACTIONS 20
+#define           DEFAULT_HEIGHT 1
 
 gboolean            tito_run_result_action             (void);
 static GtkWidget*   tito_setup_results_list            (void);
@@ -65,11 +66,9 @@ static GtkWidget        *list_view;
 static GtkWidget        *keyword_entry;
 static GtkWidget        *preferences_button;
 
-GimpUIManager           *manager;
 static gchar            *history_file_path;
 static gchar            *preference_file_path;
 static gint              cur_no_of_his_actions;
-static gint              default_height = 1;
 static gboolean          first_time = TRUE;
 static gint              tmp_x, tmp_y;
 static gint              par_x, par_y;
@@ -244,7 +243,7 @@ key_released( GtkWidget *widget,
   else
     {
       gtk_widget_hide(list_view);
-      gtk_window_resize (GTK_WINDOW(tito_dialog),(PREF.WIDTH * par_width)/100,default_height);
+      gtk_window_resize (GTK_WINDOW(tito_dialog),(PREF.WIDTH * par_width)/100, DEFAULT_HEIGHT);
     }
 }
 
@@ -317,7 +316,9 @@ find_accel_label (GtkAction *action)
   GClosure        *accel_closure = NULL;
   gchar           *accel_string;
   GtkAccelGroup   *accel_group;
+  GimpUIManager   *manager;
 
+  manager= gimp_ui_managers_from_name ("<Image>")->data;
   accel_group = gtk_ui_manager_get_accel_group (GTK_UI_MANAGER (manager));
   accel_closure = gtk_action_get_accel_closure (action);
 
@@ -432,7 +433,9 @@ void
 tito_search_history_and_actions (const gchar *keyword)
 {
   GList             *list;
-  int i = 0;
+  GimpUIManager     *manager;
+  int               i = 0;
+
   manager= gimp_ui_managers_from_name ("<Image>")->data;
   if(strcmp(keyword,"")==0)
     return;
@@ -507,7 +510,8 @@ tito_search_history_and_actions (const gchar *keyword)
 static void tito_fill_history (void)
 {
   GList             *list;
-  int i = 0;
+  GimpUIManager     *manager;
+  int               i = 0;
   manager= gimp_ui_managers_from_name ("<Image>")->data;
 
   for (list = gtk_ui_manager_get_action_groups (GTK_UI_MANAGER (manager));
@@ -724,7 +728,7 @@ tito_finalizer(void)
   if(!PREF.AUTO_HIDE)
     {
       gtk_widget_hide(list_view);
-      gtk_window_resize (GTK_WINDOW(tito_dialog),PREF.WIDTH*par_width/100,default_height);
+      gtk_window_resize (GTK_WINDOW(tito_dialog),PREF.WIDTH*par_width/100, DEFAULT_HEIGHT);
       gtk_entry_set_text(GTK_ENTRY(keyword_entry),"");
       gtk_widget_grab_focus(keyword_entry);
     }
@@ -1084,7 +1088,7 @@ tito_search_dialog (void)
   tito_dialog= gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
   gtk_window_set_decorated (GTK_WINDOW(tito_dialog),FALSE);
-  gtk_window_set_default_size (GTK_WINDOW(tito_dialog),(PREF.WIDTH/100)*par_width,default_height);
+  gtk_window_set_default_size (GTK_WINDOW(tito_dialog),(PREF.WIDTH/100)*par_width, DEFAULT_HEIGHT);
   tito_update_position();
   gtk_window_set_opacity (GTK_WINDOW(tito_dialog),PREF.OPACITY);
   if(!PREF.AUTO_HIDE)
