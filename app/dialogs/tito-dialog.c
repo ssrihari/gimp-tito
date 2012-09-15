@@ -437,7 +437,6 @@ tito_search_history_and_actions (const gchar *keyword)
   if(strcmp(keyword,"")==0)
     return;
 
-  //search in history
   for(i=0;i<cur_no_of_his_actions;i++)
   {
     if(history[i].history_action!=NULL)
@@ -449,7 +448,6 @@ tito_search_history_and_actions (const gchar *keyword)
       }
   }
 
-  //for every action group
   for (list = gtk_ui_manager_get_action_groups (GTK_UI_MANAGER (manager));
        list;
        list = g_list_next (list))
@@ -459,11 +457,9 @@ tito_search_history_and_actions (const gchar *keyword)
       GList           *list2;
 
 
-      //get and sort actions
       actions = gtk_action_group_list_actions (GTK_ACTION_GROUP (group));
       actions = g_list_sort (actions, (GCompareFunc) gimp_action_name_compare);
 
-      //for every action
       for (list2 = actions; list2; list2 = g_list_next (list2))
         {
           GtkAction       *action        = list2->data;
@@ -472,7 +468,6 @@ tito_search_history_and_actions (const gchar *keyword)
           name         = gtk_action_get_name (action);
 
 
-          //exclude menus, popups, context and undo
           if (strstr (name, "-menu")  ||
               strstr (name, "-popup") ||
               strstr (name,"context") ||
@@ -523,18 +518,15 @@ static void tito_fill_history (void)
         GList           *actions;
         GList           *list2;
 
-         //get and sort actions
          actions = gtk_action_group_list_actions (GTK_ACTION_GROUP (group));
          actions = g_list_sort (actions, (GCompareFunc) gimp_action_name_compare);
 
-         //for every action
          for (list2 = actions; list2; list2 = g_list_next (list2))
            {
              GtkAction       *action        = list2->data;
              const gchar     *action_name;
              action_name        = gtk_action_get_name (action);
 
-             //exclude menus and popups
              if ( strstr (action_name, "-menu")  ||
                   strstr (action_name, "-popup") ||
                   strstr (action_name, "context") ||
@@ -669,7 +661,6 @@ tito_update_history (GtkAction *action)
      return;
     }
 
-  //check if already in history var
   for(i=0;i<cur_no_of_his_actions;i++)
     {
       if(strcmp(gtk_action_get_name(action),gtk_action_get_name(history[i].history_action))==0)
@@ -680,7 +671,6 @@ tito_update_history (GtkAction *action)
         }
     }
 
-  //assign action to history var
   if(!is_present)
     {
       if(cur_no_of_his_actions==MAX_HISTORY_ACTIONS)
@@ -695,10 +685,8 @@ tito_update_history (GtkAction *action)
         }
     }
 
-  //sort history according to count
   qsort (history, cur_no_of_his_actions, sizeof(struct HISTORY), compare);
 
-  //write history vars to file
   for(i=0;i<cur_no_of_his_actions;i++)
     {
       if(history[i].history_action != NULL)
@@ -960,7 +948,6 @@ tito_preferences_dialog (void)
   top_hbox = gtk_hbox_new (FALSE,10);
   gtk_box_pack_start (GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(pref_dialog))), top_hbox, FALSE, FALSE, 2);
 
-  //Position preferences
   position_frame = gtk_frame_new("Postion");
   position_vbox = gtk_vbox_new(TRUE,2);
 
@@ -994,7 +981,6 @@ tito_preferences_dialog (void)
               gtk_box_pack_start (GTK_BOX (PREF_UI.pos_y_hbox),pos_y_label, TRUE, TRUE, 1);
               gtk_box_pack_start (GTK_BOX (PREF_UI.pos_y_hbox),PREF_UI.pos_y_spin_button, TRUE, TRUE, 1);
 
-  //Display preferences
   display_frame = gtk_frame_new("Display");
   display_vbox = gtk_vbox_new(TRUE,2);
 
@@ -1028,7 +1014,6 @@ tito_preferences_dialog (void)
       gtk_box_pack_start (GTK_BOX (display_vbox), PREF_UI.autohide_check_button, TRUE, TRUE, 2);
       gtk_box_pack_start (GTK_BOX (display_vbox), PREF_UI.show_insensitive_check_button, TRUE, TRUE, 2);
 
-  //Clear and restore
   bottom_hbox = gtk_hbox_new(TRUE,2);
   gtk_box_pack_start (GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(pref_dialog))), bottom_hbox, FALSE, FALSE, 2);
     gtk_box_pack_start (GTK_BOX (bottom_hbox), tito_clear_history_button, TRUE, TRUE, 2);
