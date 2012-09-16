@@ -64,7 +64,6 @@ static GtkWidget        *tito_dialog;
 static GtkWidget        *list;
 static GtkWidget        *list_view;
 static GtkWidget        *keyword_entry;
-static GtkWidget        *preferences_button;
 
 static gchar            *history_file_path;
 static gchar            *preference_file_path;
@@ -191,7 +190,7 @@ on_focus_out (GtkWidget *widget,
               GdkEventFocus *event,
               gpointer data)
 {
-  if(!gtk_widget_is_focus(preferences_button))
+  if(!gtk_widget_is_focus(GTK_WIDGET(data)))
     tito_finalizer();
   return TRUE;
 }
@@ -1084,6 +1083,7 @@ tito_search_dialog (void)
 {
   GtkWidget *main_vbox, *main_hbox;
   GtkWidget *preferences_image;
+  GtkWidget *preferences_button;
 
   tito_dialog= gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
@@ -1128,7 +1128,7 @@ tito_search_dialog (void)
   g_signal_connect (keyword_entry, "key-release-event", G_CALLBACK (key_released), NULL);
   g_signal_connect (list, "key_press_event", G_CALLBACK (result_selected), NULL);
   g_signal_connect (preferences_button, "clicked", G_CALLBACK(context_menu_invoked),NULL);
-  g_signal_connect (tito_dialog, "focus-out-event", G_CALLBACK (on_focus_out), NULL);
+  g_signal_connect (tito_dialog, "focus-out-event", G_CALLBACK (on_focus_out), preferences_button);
 
   gtk_widget_show (tito_dialog);
   return TRUE;
