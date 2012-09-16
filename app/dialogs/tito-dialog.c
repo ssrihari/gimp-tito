@@ -62,7 +62,6 @@ static void         tito_context_menu                  (void);
 
 static GtkWidget        *tito_dialog;
 static GtkWidget        *list;
-static GtkWidget        *list_view;
 static GtkWidget        *keyword_entry;
 
 static gchar            *history_file_path;
@@ -1084,6 +1083,7 @@ tito_search_dialog (void)
   GtkWidget *main_vbox, *main_hbox;
   GtkWidget *preferences_image;
   GtkWidget *preferences_button;
+  GtkWidget *list_view;
 
   tito_dialog= gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
