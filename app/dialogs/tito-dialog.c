@@ -71,7 +71,6 @@ static gboolean          first_time = TRUE;
 static gint              tmp_x, tmp_y;
 static gint              par_x, par_y;
 static gint              par_height, par_width;
-static GtkCellRenderer  *cell_renderer;
 
 
 enum RES_COL {
@@ -1040,10 +1039,11 @@ static GtkWidget*
 tito_setup_results_list(void)
 {
   gint wid1=100;
-  GtkWidget *sc_win;
-  GtkListStore *store;
-  GtkCellRenderer *cell1;
-  GtkTreeViewColumn *column1, *column2;
+  GtkWidget           *sc_win;
+  GtkListStore        *store;
+  GtkCellRenderer     *cell1;
+  GtkCellRenderer     *cell_renderer;
+  GtkTreeViewColumn   *column1, *column2;
 
   sc_win= gtk_scrolled_window_new(NULL, NULL);
   store=gtk_list_store_new(N_COL, G_TYPE_STRING, G_TYPE_STRING, GTK_TYPE_ACTION,G_TYPE_BOOLEAN);
