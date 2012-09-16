@@ -201,7 +201,8 @@ key_released( GtkWidget *widget,
               GdkEventKey *event,
               gpointer func_data)
 {
-  const gchar *entry_text;
+  const gchar  *entry_text;
+  GtkWidget    *list_view = GTK_WIDGET(func_data);
   entry_text = gtk_editable_get_chars(GTK_EDITABLE(widget),0,-1);
 
   switch (event->keyval)
@@ -726,7 +727,6 @@ tito_finalizer(void)
 {
   if(!PREF.AUTO_HIDE)
     {
-      gtk_widget_hide(list_view);
       gtk_window_resize (GTK_WINDOW(tito_dialog),PREF.WIDTH*par_width/100, DEFAULT_HEIGHT);
       gtk_entry_set_text(GTK_ENTRY(keyword_entry),"");
       gtk_widget_grab_focus(keyword_entry);
@@ -1125,7 +1125,7 @@ tito_search_dialog (void)
   gtk_widget_set_events(preferences_button, GDK_BUTTON_PRESS_MASK);
 
   g_signal_connect(list, "row-activated", (GCallback) row_activated, NULL);
-  g_signal_connect (keyword_entry, "key-release-event", G_CALLBACK (key_released), NULL);
+  g_signal_connect (keyword_entry, "key-release-event", G_CALLBACK (key_released), list_view);
   g_signal_connect (list, "key_press_event", G_CALLBACK (result_selected), NULL);
   g_signal_connect (preferences_button, "clicked", G_CALLBACK(context_menu_invoked),NULL);
   g_signal_connect (tito_dialog, "focus-out-event", G_CALLBACK (on_focus_out), preferences_button);
