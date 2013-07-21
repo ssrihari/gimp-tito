@@ -1,136 +1,97 @@
-Tito
-====
+                   ------------------------------ 
+                   GNU Image Manipulation Program
+                         2.8 Stable Branch
+                   ------------------------------
 
-With small (but awesome) additions, this is still The GIMP.
+GIMP 2.8 replaces earlier GIMP 2.x versions. It is advised that you
+uninstall them before installing GIMP 2.8. If you want to keep your
+older GIMP 2.x installation in parallel to GIMP 2.8, you have to
+choose a separate prefix which is not in your default library search
+path. Otherwise your prevoius GIMP installation will start to use the
+new libraries. You have been warned.
 
-See the [demo](http://youtu.be/G0PuH1LFWhA?hd=1) for an insight into the usage.
+If you think you found a bug in this version, please make sure that it
+hasn't been reported earlier and that it is not just new stuff that is
+still being worked on and obviously not quite finished yet.
+
+If you want to hack on GIMP, please read the file HACKING. For
+detailed installation instructions, see the file INSTALL.
 
 
-Tito is a text input tool developed for the GIMP as a first attempt 
-to add an  
- `intent driven interface` that helps to get at the menus faster.
+1. Web Resources
+================
 
-If,
- - You forgot where something appears in the menu,
- - or find it cumbersome to traverse through the menu everytime,
- - or forgot a shortcut,
- - or choose what you want from a bunch of smiliar actions,  
- then Tito should help you.
+GIMP's home page is at:
 
-`Press [Shift+?] to activate Tito`
+	http://www.gimp.org/
 
-### See the following sections for more information:
- - [Algorithm](#i-algorithm)
- - [UI/UX](#ii-ui-ux)
- - [Ideas](#iii-ideas-not-yet-implemented)
- - [Pitfalls](#iv-pitfalls)  
-  
-  
-## [I] Algorithm
+Please be sure to visit this site for information, documentation,
+tutorials, news, etc.  All things GIMP-ish are available from there.
 
-### Data 
-##### *What is searched?*
-    1.User-readable texts of Menuitems, Tools, Dockable-dialogs and Plugins:
-        Labels(as they appear in the menus)
-        Tooltips(small descriptions) of all actions
-    2. User history [Previously applied actions through Tito]
-    3. Avoides search in main-menus, popups and context-actions
+The automated plug-in registry is located at:
 
-### Mechanism
-      1.Labels first
-      2.If keyword is two characters,
-          then match them with first letters of first and second word in the labels.
-          [Ex: 'gb' will list 'Gaussian Blur...']
-      3.Tooltips
-          When keyword is longer than two characters
-          [Tooltips need to be searched because they might contain vital keywords
-           that might be absent in the labels. Ex: 'adjust' will list 'Canvas Size...']
-      4.User history
-          If keyword matches with previously applied actions, it is listed first.
-          [Also, the list of previously used actions appears when the down-arrow key is pressed]
+	http://registry.gimp.org/
 
-### Adaptiveness
-      Frequently used actions appear higher in the results list.
-      This is great when dealing with frequently used menuitems that don't have shortcuts.
-      Over a period of time, this would largely reduce the number of keystrokes.  
-  
-  
-## [II] UI / UX
+There you can get the latest versions of plug-ins, using a convenient
+forms-based interface.
 
-### Keyword entry
-      Occupies minimal space, does not hinder with work-area
-      Has the look and feel of a search-bar with editable text area
-      Preferences:
-          Position
-              -Right top      [Default, and most used location for a search bar]
-              -Middle         [For those who can't take their eyes off the canvas]
-              -User specific  [Adjust by giving coordinates]
-                              [The coordinates are in percentages that are limited by the current width]
-          Width
-              Adjustable from 20% to 60% of screen width_hbox
-      
-### Results list
-      A navigable dropdown-list of runnable actions
-      Each result shows:
-        - The icon corresponding to the action
-        - The Label as in the menus
-        - A corresponding shortcut if available
-        - A short description (tooltip) if available
-      A result, after selection, can be 'applied' by 
-        -Hitting return
-        -Double click
-      Preferences:
-          Height  [Show more/less results]            
+The latest version of GIMP can be found at:
 
-### Toggle actions
-      Actions like 'Show Grid' or "Single-Window Mode" are displayed with
-      appropriate icons that indicate their state
+	http://www.gimp.org/downloads/
 
-### Autohide
-      A preference that would help toggle the visibility of Tito.
-      If not set, then Tito would remain over GIMP
-      and the user would press [Shift+?] to switch to Tito
-      
-### Show inert actions
-      If set, then the actions that are currently unavailable
-      would be shown, but 'greyed-out'. If not set, they would not be shown.
 
-### Quick apply
-      Hitting return while in the keyword area runs the first result.  
+2. Mailing Lists
+================
 
-  
-  
-## [III] Ideas (not yet implemented)
-      
-### Thesaurus
-      Map the dictionary of image editing with the GIMP terminology.
-      So, 'scale', 'resize', 'shrink', 'expand' could transform to a single meaning.
+We have several mailing lists dedicated to GIMP user and development
+discussion.  There is more info at
 
-### Wider search
-      Search through the user help/documentation.
-      Search based on menu hierarchy.
+	http://www.gimp.org/mail_lists.html
 
-### Highlight keywords in result
+Links to several archives of the mailing lists are included in that page.
 
-### Command system
-      An epic addition to the GIMP interface that would allow entering commands
-      or a sequence of commands to perform complex manipulations.  
-      
-  
-  
-## [IV] Pitfalls
+Gimp-user-list is a mailing list dedicated to user problems, hints and
+tips, discussion of cool effects, etc.  Gimp-developer-list is oriented
+to GIMP core and plug-in developers.  Most people will only want to be
+subscribed to gimp-user-list. If you want to help develop GIMP, the
+gimp-developer mailing list is a good starting point.
 
-### Menu Path
-      Tried and failed in attaining the menu-path, ui-path that corresponds to an action.
-      There is apparently no Gtk mechanism to do this.
-      The only way to do this would be to parse the entire menu ui XML,
-      which would increase the complexity enormously and put limitations on performance.
 
-### Autocomplete
-      To reduce the number of keystrokes to search and apply, we tried different mechanisms
-      of 'auto-complete' and settled with the very basics.
+3. IRC
+======
 
-### Advanced search
-      We tried using a search engine to parse through XML databases that contained 
-      organized information. We indexed the text and used APIs to invoke the search engine.
-      This turned out to be an overkill.
+And finally, for the real junkies, there is an IRC channel devoted to
+GIMP. On GIMPNet (a private free software oriented network) there is
+#gimp.  Many of the developers hang out there.  Some of the GIMPNet
+servers are:
+
+	irc.gimp.org:6667
+	irc.us.gimp.org:6667
+	irc.eu.gimp.org:6667
+
+
+4. Customizing
+==============
+
+The look of GIMP's interface can be customized like any other GTK app
+by editing the ~/.gtkrc-2.0 file or by using "themes" (ready-made
+customizations).  For downloadable themes and further details, see
+http://art.gnome.org/themes/gtk2 . Additionally, GIMP reads the file
+~/.config/GIMP/2.8/gtkrc so you can have settings that only apply to GIMP.
+
+Included is a set of keybindings similar to those in Adobe Photoshop.
+You can find them in the ps-menurc file.  To use them, copy this file
+to ~/.config/GIMP/2.8/menurc. You can also manually change the keybindings to
+any of your choice by editing ~/.config/GIMP/2.8/menurc.
+
+
+Have fun,
+
+  Spencer Kimball
+  Peter Mattis
+  Federico Mena
+  Manish Singh
+  Sven Neumann
+  Michael Natterer
+  Dave Neary
+  Martin Nordholts
