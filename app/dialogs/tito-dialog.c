@@ -766,7 +766,7 @@ tito_initializer(void)
   }
   tito_read_preferences();
   tito_read_history();
-  gtk_accel_map_change_entry ("<Actions>/dialogs/dialogs-tito",'?',GDK_SHIFT_MASK,FALSE);
+  gtk_accel_map_change_entry ("<Actions>/dialogs/dialogs-tito", 'd', 0, FALSE);
   return TRUE;
 }
 
