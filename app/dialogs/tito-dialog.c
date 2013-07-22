@@ -791,7 +791,7 @@ tito_set_default_preferences (void)
  PREF.POSITION_X = (1-0.4)*par_width+par_x;
  PREF.POSITION_Y = 0.04*par_height+par_y;
  PREF.NO_OF_RESULTS = 4;
- PREF.SHOW_INSENSITIVE = TRUE;
+ PREF.SHOW_INSENSITIVE = FALSE;
  PREF.OPACITY = 1;
  tito_write_preferences();
 }
@@ -984,7 +984,7 @@ tito_preferences_dialog (void)
   PREF_UI.width_spin_button = gtk_spin_button_new_with_range(20,60,1);
   opacity_label = gtk_label_new("Tito Opacity:");
   PREF_UI.opacity_spin_button = gtk_spin_button_new_with_range(40,100,10);
-  PREF_UI.show_insensitive_check_button = gtk_check_button_new_with_label("Show inert actions");
+  PREF_UI.show_insensitive_check_button = gtk_check_button_new_with_label("Show unavailable actions");
   tito_clear_history_button = gtk_button_new_with_label ("Clear history");
   restore_defaults_button = gtk_button_new_with_label ("Restore defaults");
 
