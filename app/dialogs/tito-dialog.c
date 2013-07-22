@@ -786,7 +786,7 @@ tito_clear_history (void)
 static void
 tito_set_default_preferences (void)
 {
- PREF.POSITION = 0;
+ PREF.POSITION = 1;
  PREF.WIDTH = 40;
  PREF.POSITION_X = (1-0.4)*par_width+par_x;
  PREF.POSITION_Y = 0.04*par_height+par_y;
