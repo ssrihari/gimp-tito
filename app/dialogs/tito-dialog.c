@@ -61,7 +61,7 @@ void                tito_finalizer                     (void);
 static void         tito_context_menu                  (void);
 
 static GtkWidget        *tito_dialog;
-static GtkWidget        *list;
+static GtkWidget        *results_list;
 static GtkWidget        *keyword_entry;
 
 static gchar            *history_file_path;
@@ -218,20 +218,20 @@ key_released( GtkWidget *widget,
     {
       gtk_window_resize(GTK_WINDOW(tito_dialog),(PREF.WIDTH * par_width)/100,
                        (PREF.NO_OF_RESULTS*40+100));
-      gtk_list_store_clear (GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(list))));
+      gtk_list_store_clear (GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(results_list))));
       gtk_widget_show_all(list_view);
       tito_search_history_and_actions(entry_text);
-      gtk_tree_selection_select_path ( gtk_tree_view_get_selection(GTK_TREE_VIEW(list)),
+      gtk_tree_selection_select_path ( gtk_tree_view_get_selection(GTK_TREE_VIEW(results_list)),
                                        gtk_tree_path_new_from_string("0"));
     }
   else if(strcmp(entry_text,"")==0 && (event->keyval == GDK_Down) )
     {
       gtk_window_resize(GTK_WINDOW(tito_dialog),(PREF.WIDTH * par_width)/100,
                        (PREF.NO_OF_RESULTS*40+100));
-      gtk_list_store_clear (GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(list))));
+      gtk_list_store_clear (GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(results_list))));
       gtk_widget_show_all(list_view);
       tito_search_history_and_actions(" ");
-      gtk_tree_selection_select_path ( gtk_tree_view_get_selection(GTK_TREE_VIEW(list)),
+      gtk_tree_selection_select_path ( gtk_tree_view_get_selection(GTK_TREE_VIEW(results_list)),
                                        gtk_tree_path_new_from_string("0"));
 
     }
@@ -267,7 +267,7 @@ result_selected ( GtkWidget * widget,
               GtkTreeModel     *model;
               GtkTreeIter       iter;
               GtkTreePath       *path;
-              selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(list));
+              selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(results_list));
               gtk_tree_selection_set_mode(selection, GTK_SELECTION_SINGLE);
 
               if (gtk_tree_selection_get_selected(selection, &model, &iter))
@@ -387,7 +387,7 @@ tito_add_to_results_list( const gchar *label,
 
   markuptxt = g_strdup_printf("%s<small>%s<span weight='light'>%s</span></small>",
                                label, shortcut, data);
-  store= GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(list)));
+  store= GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(results_list)));
   gtk_list_store_append(store, &iter);
   gtk_list_store_set(store, &iter,
                      RESULT_ICON, stock_id,
@@ -405,7 +405,7 @@ tito_run_result_action (void)
   GtkTreeModel     *model;
   GtkTreeIter       iter;
 
-  selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(list));
+  selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(results_list));
   gtk_tree_selection_set_mode(selection, GTK_SELECTION_SINGLE);
   if (gtk_tree_selection_get_selected(selection, &model, &iter))
     {
@@ -1033,15 +1033,15 @@ tito_setup_results_list(void)
 
   sc_win= gtk_scrolled_window_new(NULL, NULL);
   store=gtk_list_store_new(N_COL, G_TYPE_STRING, G_TYPE_STRING, GTK_TYPE_ACTION,G_TYPE_BOOLEAN);
-  list=gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
-  gtk_tree_view_set_headers_visible (GTK_TREE_VIEW(list),FALSE);
+  results_list=gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
+  gtk_tree_view_set_headers_visible (GTK_TREE_VIEW(results_list),FALSE);
 
   cell1 = gtk_cell_renderer_pixbuf_new ();
   column1=gtk_tree_view_column_new_with_attributes(NULL,
                                                   cell1,
                                                   "stock_id", RESULT_ICON,
                                                   NULL);
-  gtk_tree_view_append_column(GTK_TREE_VIEW(list),column1);
+  gtk_tree_view_append_column(GTK_TREE_VIEW(results_list),column1);
   gtk_tree_view_column_add_attribute(column1, cell1, "sensitive", IS_SENSITIVE);
   gtk_tree_view_column_set_min_width(column1,22);
 
@@ -1051,14 +1051,14 @@ tito_setup_results_list(void)
                                                   "markup", RESULT_DATA,
                                                   NULL);
   gtk_tree_view_column_add_attribute(column2, cell_renderer, "sensitive", IS_SENSITIVE);
-  gtk_tree_view_append_column(GTK_TREE_VIEW(list),column2);
+  gtk_tree_view_append_column(GTK_TREE_VIEW(results_list),column2);
   gtk_tree_view_column_set_max_width(column2,wid1);
 
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(sc_win),
                                  GTK_POLICY_NEVER,
                                  GTK_POLICY_AUTOMATIC);
 
-  gtk_container_add(GTK_CONTAINER(sc_win),list);
+  gtk_container_add(GTK_CONTAINER(sc_win),results_list);
   g_object_unref(G_OBJECT(store));
   return sc_win;
 }
@@ -1108,9 +1108,9 @@ tito_search_dialog (void)
   gtk_widget_set_events(tito_dialog, GDK_BUTTON_PRESS_MASK);
   gtk_widget_set_events(preferences_button, GDK_BUTTON_PRESS_MASK);
 
-  g_signal_connect(list, "row-activated", (GCallback) row_activated, NULL);
+  g_signal_connect(results_list, "row-activated", (GCallback) row_activated, NULL);
   g_signal_connect (keyword_entry, "key-release-event", G_CALLBACK (key_released), list_view);
-  g_signal_connect (list, "key_press_event", G_CALLBACK (result_selected), NULL);
+  g_signal_connect (results_list, "key_press_event", G_CALLBACK (result_selected), NULL);
   g_signal_connect (preferences_button, "clicked", G_CALLBACK(context_menu_invoked),NULL);
   g_signal_connect (tito_dialog, "focus-out-event", G_CALLBACK (on_focus_out), preferences_button);
 
