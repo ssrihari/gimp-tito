@@ -258,9 +258,7 @@ gimp_action_view_new (GimpUIManager *manager,
             continue;
 
           label = gimp_strip_uline (gtk_action_get_label (action));
-          
-	     tito_search(name,label,tooltip,action);
-	  	  
+
           if (! (label && strlen (label)))
             {
               g_free (label);
@@ -695,7 +693,7 @@ gimp_action_view_conflict_confirm (GimpActionView  *view,
                                      _("Shortcut \"%s\" is already taken "
                                        "by \"%s\" from the \"%s\" group."),
                                      accel_string, label, group->label);
-  
+
   gimp_message_box_set_text (box,
                              _("Reassigning the shortcut will cause it "
                                "to be removed from \"%s\"."),
@@ -902,17 +900,4 @@ gimp_action_view_accel_cleared (GtkCellRendererAccel *accel,
 			    G_OBJECT (view), GIMP_MESSAGE_ERROR,
 			    _("Removing shortcut failed."));
     }
-}
-
-static void tito_search(const gchar* sname, const gchar* slabel, const gchar* stooltip, GtkAction *saction)
-{
-	const gchar* keyword="gauss";
-	
-	if(strstr(sname,keyword))
-		{
-			g_message("%s %s",slabel,stooltip);
-			gtk_action_activate(saction);
-		}
-/*		else if(strstr(stooltip,keyword))*/
-/*		g_message("%s %s",slabel,stooltip);*/
 }
