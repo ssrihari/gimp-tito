@@ -67,6 +67,13 @@ enum
   PROP_SHOW_HELP_BUTTON,
   PROP_HELP_LOCALES,
   PROP_HELP_BROWSER,
+  PROP_SEARCH_DIALOG_X,
+  PROP_SEARCH_DIALOG_Y,
+  PROP_SEARCH_DIALOG_WIDTH,
+  PROP_SEARCH_DIALOG_HEIGHT,
+  PROP_SEARCH_DIALOG_OPACITY,
+  PROP_SEARCH_SHOW_UNAVAILABLE_ACTIONS,
+  PROP_ACTION_HISTORY_SIZE,
   PROP_USER_MANUAL_ONLINE,
   PROP_USER_MANUAL_ONLINE_URI,
   PROP_DOCK_WINDOW_HINT,
@@ -228,6 +235,50 @@ gimp_gui_config_class_init (GimpGuiConfigClass *klass)
                                  GIMP_TYPE_HELP_BROWSER_TYPE,
                                  DEFAULT_HELP_BROWSER,
                                  GIMP_PARAM_STATIC_STRINGS);
+  g_object_class_install_property (object_class, PROP_SEARCH_DIALOG_X,
+                                   g_param_spec_int ("search-dialog-position-x",
+                                                     NULL, NULL,
+                                                     -1, 10000, -1,
+                                                     G_PARAM_READWRITE |
+                                                     G_PARAM_CONSTRUCT |
+                                                     GIMP_PARAM_STATIC_STRINGS));
+  g_object_class_install_property (object_class, PROP_SEARCH_DIALOG_Y,
+                                   g_param_spec_int ("search-dialog-position-y",
+                                                     NULL, NULL,
+                                                     -1, 10000, -1,
+                                                     G_PARAM_READWRITE |
+                                                     G_PARAM_CONSTRUCT |
+                                                     GIMP_PARAM_STATIC_STRINGS));
+  g_object_class_install_property (object_class, PROP_SEARCH_DIALOG_WIDTH,
+                                   g_param_spec_int ("search-dialog-width",
+                                                     NULL, NULL,
+                                                     -1, 10000, -1,
+                                                     G_PARAM_READWRITE |
+                                                     G_PARAM_CONSTRUCT |
+                                                     GIMP_PARAM_STATIC_STRINGS));
+  g_object_class_install_property (object_class, PROP_SEARCH_DIALOG_HEIGHT,
+                                   g_param_spec_int ("search-dialog-height",
+                                                     NULL, NULL,
+                                                     20, 800, 200,
+                                                     G_PARAM_READWRITE |
+                                                     G_PARAM_CONSTRUCT |
+                                                     GIMP_PARAM_STATIC_STRINGS));
+  g_object_class_install_property (object_class, PROP_SEARCH_DIALOG_OPACITY,
+                                   g_param_spec_int ("search-dialog-opacity",
+                                                     NULL, SEARCH_DIALOG_OPACITY_BLURB,
+                                                     1, 100, 100,
+                                                     G_PARAM_READWRITE |
+                                                     G_PARAM_CONSTRUCT |
+                                                     GIMP_PARAM_STATIC_STRINGS));
+  /* As a default, we hide unavailable actions. */
+  GIMP_CONFIG_INSTALL_PROP_BOOLEAN (object_class, PROP_SEARCH_SHOW_UNAVAILABLE_ACTIONS,
+                                    "search-show-unavailable-actions", SEARCH_SHOW_UNAVAILABLE_BLURB,
+                                    FALSE,
+                                    GIMP_PARAM_STATIC_STRINGS);
+  GIMP_CONFIG_INSTALL_PROP_INT (object_class, PROP_ACTION_HISTORY_SIZE,
+                                "action-history-size", ACTION_HISTORY_SIZE_BLURB,
+                                0, 200, 20,
+                                GIMP_PARAM_STATIC_STRINGS);
   GIMP_CONFIG_INSTALL_PROP_BOOLEAN (object_class, PROP_USER_MANUAL_ONLINE,
                                     "user-manual-online",
                                     USER_MANUAL_ONLINE_BLURB,
@@ -432,6 +483,27 @@ gimp_gui_config_set_property (GObject      *object,
     case PROP_HELP_BROWSER:
       gui_config->help_browser = g_value_get_enum (value);
       break;
+    case PROP_SEARCH_DIALOG_X:
+      gui_config->search_dialog_x = g_value_get_int (value);
+      break;
+    case PROP_SEARCH_DIALOG_Y:
+      gui_config->search_dialog_y = g_value_get_int (value);
+      break;
+    case PROP_SEARCH_DIALOG_WIDTH:
+      gui_config->search_dialog_width = g_value_get_int (value);
+      break;
+    case PROP_SEARCH_DIALOG_HEIGHT:
+      gui_config->search_dialog_height = g_value_get_int (value);
+      break;
+    case PROP_SEARCH_DIALOG_OPACITY:
+      gui_config->search_dialog_opacity = g_value_get_int (value);
+      break;
+    case PROP_SEARCH_SHOW_UNAVAILABLE_ACTIONS:
+      gui_config->search_show_unavailable = g_value_get_boolean (value);
+      break;
+    case PROP_ACTION_HISTORY_SIZE:
+      gui_config->action_history_size = g_value_get_int (value);
+      break;
     case PROP_USER_MANUAL_ONLINE:
       gui_config->user_manual_online = g_value_get_boolean (value);
       break;
@@ -557,6 +629,27 @@ gimp_gui_config_get_property (GObject    *object,
       break;
     case PROP_HELP_BROWSER:
       g_value_set_enum (value, gui_config->help_browser);
+      break;
+    case PROP_SEARCH_DIALOG_X:
+      g_value_set_int (value, gui_config->search_dialog_x);
+      break;
+    case PROP_SEARCH_DIALOG_Y:
+      g_value_set_int (value, gui_config->search_dialog_y);
+      break;
+    case PROP_SEARCH_DIALOG_WIDTH:
+      g_value_set_int (value, gui_config->search_dialog_width);
+      break;
+    case PROP_SEARCH_DIALOG_HEIGHT:
+      g_value_set_int (value, gui_config->search_dialog_height);
+      break;
+    case PROP_SEARCH_DIALOG_OPACITY:
+      g_value_set_int (value, gui_config->search_dialog_opacity);
+      break;
+    case PROP_SEARCH_SHOW_UNAVAILABLE_ACTIONS:
+      g_value_set_boolean (value, gui_config->search_show_unavailable);
+      break;
+    case PROP_ACTION_HISTORY_SIZE:
+      g_value_set_int (value, gui_config->action_history_size);
       break;
     case PROP_USER_MANUAL_ONLINE:
       g_value_set_boolean (value, gui_config->user_manual_online);

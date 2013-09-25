@@ -61,6 +61,16 @@ struct _GimpGuiConfig
   gboolean             show_help_button;
   gchar               *help_locales;
   GimpHelpBrowserType  help_browser;
+
+  /* Action Search preferences. */
+  gint                 search_dialog_x;
+  gint                 search_dialog_y;
+  gint                 search_dialog_width;
+  gint                 search_dialog_height;
+  gint                 search_dialog_opacity;
+  gboolean             search_show_unavailable;
+  gint                 action_history_size;
+
   gchar               *web_browser;
   gboolean             user_manual_online;
   gchar               *user_manual_online_uri;

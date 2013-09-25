@@ -201,7 +201,7 @@ dialogs_action_search_get (GimpDialogFactory *factory,
                            GimpUIManager     *ui_manager,
                            gint               view_size)
 {
-  return action_search_dialog_create ();
+  return action_search_dialog_create (context->gimp);
 }
 
 GtkWidget *
