@@ -1690,9 +1690,6 @@ prefs_dialog_new (Gimp       *gimp,
   prefs_spin_button_add (object, "action-history-size", 1.0, 10.0, 0,
                          _("Maximum History Size:"),
                          GTK_TABLE (table), 0, size_group);
-  prefs_spin_button_add (object, "search-dialog-opacity", 1.0, 10.0, 0,
-                         _("Search Dialog Opacity:"),
-                         GTK_TABLE (table), 3, size_group);
 
   button = prefs_button_add (GTK_STOCK_CLEAR,
                              _("Clear Action History"),

@@ -83,6 +83,9 @@ static gboolean     quit_button_clicked                    (GtkWidget         *w
 static void         size_allocated                         (GtkWidget         *widget,
                                                             GdkRectangle      *rec,
                                                             SearchDialog      *private);
+static gboolean     window_scrolled                        (GtkWidget         *widget,
+                                                            GdkEvent          *event,
+                                                            SearchDialog      *private);
 
 static void         action_search_setup_results_list       (GtkWidget        **results_list,
                                                             GtkWidget        **list_view);
@@ -160,6 +163,7 @@ action_search_dialog_create (Gimp *gimp)
   g_signal_connect (private->results_list, "key_press_event", G_CALLBACK (result_selected), private);
   g_signal_connect (quit_button, "clicked", G_CALLBACK (quit_button_clicked), private);
   g_signal_connect (action_search_dialog, "size-allocate", G_CALLBACK (size_allocated), private);
+  g_signal_connect (action_search_dialog, "scroll-event", G_CALLBACK (window_scrolled), private);
 
   gtk_widget_show (action_search_dialog);
 
@@ -654,6 +658,45 @@ size_allocated (GtkWidget    *widget,
     {
       private->config->search_dialog_height = rec->height;
     }
+}
+
+static gboolean
+window_scrolled (GtkWidget    *widget,
+                 GdkEvent     *event,
+                 SearchDialog *private)
+{
+  GdkEventScroll *scroll = (GdkEventScroll*) event;
+
+  if (scroll->state & GDK_CONTROL_MASK)
+    {
+      GimpGuiConfig *config      = private->config;
+      gint           new_opacity = config->search_dialog_opacity;
+
+      switch (scroll->direction)
+        {
+        case GDK_SCROLL_UP:
+          new_opacity = MIN (config->search_dialog_opacity + 5, 100);
+          break;
+
+        case GDK_SCROLL_DOWN:
+          new_opacity = MAX (config->search_dialog_opacity - 5, 10);
+          break;
+
+        default:
+          break;
+        }
+
+      if (new_opacity != config->search_dialog_opacity)
+        {
+          config->search_dialog_opacity = new_opacity;
+          gtk_window_set_opacity (GTK_WINDOW (private->dialog),
+                                  (gdouble) new_opacity / 100.0);
+        }
+
+      return TRUE;
+    }
+
+  return FALSE;
 }
 
 static void

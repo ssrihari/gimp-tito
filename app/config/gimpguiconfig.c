@@ -265,8 +265,8 @@ gimp_gui_config_class_init (GimpGuiConfigClass *klass)
                                                      GIMP_PARAM_STATIC_STRINGS));
   g_object_class_install_property (object_class, PROP_SEARCH_DIALOG_OPACITY,
                                    g_param_spec_int ("search-dialog-opacity",
-                                                     NULL, SEARCH_DIALOG_OPACITY_BLURB,
-                                                     1, 100, 100,
+                                                     NULL, NULL,
+                                                     10, 100, 100,
                                                      G_PARAM_READWRITE |
                                                      G_PARAM_CONSTRUCT |
                                                      GIMP_PARAM_STATIC_STRINGS));

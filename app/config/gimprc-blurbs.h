@@ -474,9 +474,6 @@ N_("When enabled, uses OpenCL for some operations.")
 "Bugs in event history buffer are frequent so in case of cursor " \
 "offset problems turning it off helps."
 
-#define SEARCH_DIALOG_OPACITY_BLURB \
-"Opacity of the action search box."
-
 #define SEARCH_SHOW_UNAVAILABLE_BLURB \
 "When enabled, a search of actions will also return inactive actions."
 
