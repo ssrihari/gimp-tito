@@ -77,16 +77,13 @@ static gboolean     action_search_match_keyword            (GtkAction         *a
 static void         action_search_update_position          (SearchDialog      *private);
 
 static void         action_search_finalizer                (SearchDialog      *private);
-static gboolean     quit_button_clicked                    (GtkWidget         *widget,
+
+static gboolean     window_configured                      (GtkWindow         *window,
                                                             GdkEvent          *event,
-                                                            SearchDialog      *private );
-static void         size_allocated                         (GtkWidget         *widget,
-                                                            GdkRectangle      *rec,
                                                             SearchDialog      *private);
 static gboolean     window_scrolled                        (GtkWidget         *widget,
                                                             GdkEvent          *event,
                                                             SearchDialog      *private);
-
 static void         action_search_setup_results_list       (GtkWidget        **results_list,
                                                             GtkWidget        **list_view);
 static void         search_dialog_free                     (SearchDialog      *private);
@@ -108,7 +105,6 @@ action_search_dialog_create (Gimp *gimp)
   SearchDialog  *private;
   GimpGuiConfig *config;
   GtkWidget     *main_vbox, *main_hbox;
-  GtkWidget     *quit_button;
 
   gtk_accel_map_change_entry ("<Actions>/dialogs/dialogs-action-search", 'd', 0, FALSE);
 
@@ -127,7 +123,6 @@ action_search_dialog_create (Gimp *gimp)
   gtk_window_set_title (GTK_WINDOW (action_search_dialog), _("Search Actions"));
   action_search_update_position (private);
   gtk_window_set_opacity (GTK_WINDOW (action_search_dialog), (gdouble) config->search_dialog_opacity / 100.0);
-  gtk_window_set_keep_above (GTK_WINDOW (action_search_dialog), TRUE);
 
   main_vbox = gtk_vbox_new (FALSE, 2);
   gtk_container_add (GTK_CONTAINER (action_search_dialog), main_vbox);
@@ -142,27 +137,17 @@ action_search_dialog_create (Gimp *gimp)
   gtk_widget_show (private->keyword_entry);
   gtk_box_pack_start (GTK_BOX (main_hbox), private->keyword_entry, TRUE, TRUE, 0);
 
-  quit_button = gtk_button_new ();
-  gtk_button_set_image (GTK_BUTTON (quit_button),
-                        gtk_image_new_from_stock (GTK_STOCK_QUIT,
-                                                  GTK_ICON_SIZE_MENU));
-  gtk_button_set_focus_on_click (GTK_BUTTON (quit_button), FALSE);
-  gtk_widget_set_events (quit_button, GDK_BUTTON_PRESS_MASK);
-  gtk_box_pack_end (GTK_BOX (main_hbox), quit_button, FALSE, TRUE, 0);
-  gtk_widget_show (quit_button);
-
   action_search_setup_results_list (&private->results_list, &private->list_view);
   gtk_box_pack_start (GTK_BOX (main_vbox), private->list_view, TRUE, TRUE, 0);
 
-  gtk_widget_set_events (action_search_dialog, GDK_KEY_RELEASE_MASK);
-  gtk_widget_set_events (action_search_dialog, GDK_KEY_PRESS_MASK);
-  gtk_widget_set_events (action_search_dialog, GDK_BUTTON_PRESS_MASK);
+  gtk_widget_set_events (action_search_dialog,
+                         GDK_KEY_RELEASE_MASK | GDK_KEY_PRESS_MASK |
+                         GDK_BUTTON_PRESS_MASK | GDK_SCROLL_MASK);
 
   g_signal_connect (private->results_list, "row-activated", (GCallback) row_activated, private);
   g_signal_connect (private->keyword_entry, "key-release-event", G_CALLBACK (key_released), private);
   g_signal_connect (private->results_list, "key_press_event", G_CALLBACK (result_selected), private);
-  g_signal_connect (quit_button, "clicked", G_CALLBACK (quit_button_clicked), private);
-  g_signal_connect (action_search_dialog, "size-allocate", G_CALLBACK (size_allocated), private);
+  g_signal_connect (action_search_dialog, "event", G_CALLBACK (window_configured), private);
   g_signal_connect (action_search_dialog, "scroll-event", G_CALLBACK (window_scrolled), private);
 
   gtk_widget_show (action_search_dialog);
@@ -184,18 +169,18 @@ key_released (GtkWidget    *widget,
   entry_text = gtk_editable_get_chars (GTK_EDITABLE (widget), 0, -1);
 
   switch (event->keyval)
-  {
-    case GDK_Escape:
     {
-      action_search_finalizer (private);
-      return;
+      case GDK_Escape:
+        {
+          action_search_finalizer (private);
+          return;
+        }
+      case GDK_Return:
+        {
+          action_search_run_selected (private);
+          return;
+        }
     }
-    case GDK_Return:
-    {
-      action_search_run_selected (private);
-      return;
-    }
-  }
 
   if (strcmp (entry_text, "") != 0)
     {
@@ -263,10 +248,30 @@ result_selected (GtkWidget    *widget,
 
                   if (strcmp (gtk_tree_path_to_string (path), "0") == 0)
                     {
+                      gint start_pos;
+                      gint end_pos;
+
+                      gtk_editable_get_selection_bounds (GTK_EDITABLE (private->keyword_entry), &start_pos, &end_pos);
                       gtk_widget_grab_focus ((GTK_WIDGET (private->keyword_entry)));
+                      gtk_editable_select_region (GTK_EDITABLE (private->keyword_entry), start_pos, end_pos);
+
                       return TRUE;
                     }
                 }
+            }
+          case GDK_Down:
+            {
+              return FALSE;
+            }
+          default:
+            {
+              gint start_pos;
+              gint end_pos;
+
+              gtk_editable_get_selection_bounds (GTK_EDITABLE (private->keyword_entry), &start_pos, &end_pos);
+              gtk_widget_grab_focus ((GTK_WIDGET (private->keyword_entry)));
+              gtk_editable_select_region (GTK_EDITABLE (private->keyword_entry), start_pos, end_pos);
+              gtk_widget_event (GTK_WIDGET (private->keyword_entry), (GdkEvent*) pKey);
             }
         }
     }
@@ -323,7 +328,7 @@ action_search_find_accel_label (GtkAction *action)
 
   accel_string = gtk_accelerator_get_label (accel_key, accel_mask);
 
-  if (strcmp (accel_string, "") == 0)
+  if (strcmp (g_strstrip (accel_string), "") == 0)
     {
       /* The value returned by gtk_accelerator_get_label() must be freed after use. */
       g_free (accel_string);
@@ -340,12 +345,24 @@ action_search_add_to_results_list (GtkAction    *action,
   GtkTreeIter   iter;
   GtkListStore *store;
   gchar        *markuptxt;
-  gchar        *label        = gimp_strip_uline (gtk_action_get_label (action));
-  const gchar  *stock_id     = gtk_action_get_stock_id (action);
-  gchar        *accel_string = action_search_find_accel_label (action);
+  gchar        *label;
+  gchar        *escaped_label = NULL;
+  const gchar  *stock_id;
+  gchar        *accel_string;
+  gchar        *escaped_accel = NULL;
   gboolean      has_shortcut = FALSE;
-  const gchar  *tooltip      = gtk_action_get_tooltip (action);
+  const gchar  *tooltip;
+  gchar        *escaped_tooltip = NULL;
   gboolean      has_tooltip  = FALSE;
+
+  label = g_strstrip (gimp_strip_uline (gtk_action_get_label (action)));
+
+  if (! label || strlen (label) == 0)
+    {
+      g_free (label);
+      return;
+    }
+  escaped_label = g_markup_escape_text (label, -1);
 
   if (GTK_IS_TOGGLE_ACTION (action))
     {
@@ -354,19 +371,31 @@ action_search_add_to_results_list (GtkAction    *action,
       else
         stock_id = GTK_STOCK_NO;
     }
+  else
+    {
+      stock_id = gtk_action_get_stock_id (action);
+    }
 
-  if (accel_string != NULL && strchr (accel_string, '<') == NULL)
-    has_shortcut = TRUE;
+  accel_string = action_search_find_accel_label (action);
+  if (accel_string != NULL)
+    {
+      escaped_accel = g_markup_escape_text (accel_string, -1);
+      has_shortcut = TRUE;
+    }
 
-  if (tooltip != NULL && strchr (tooltip, '<') == NULL)
-    has_tooltip = TRUE;
+  tooltip = gtk_action_get_tooltip (action);
+  if (tooltip != NULL)
+    {
+      escaped_tooltip = g_markup_escape_text (tooltip, -1);
+      has_tooltip = TRUE;
+    }
 
   markuptxt = g_strdup_printf ("%s<small>%s%s%s<span weight='light'>%s</span></small>",
-                               label,
+                               escaped_label,
                                has_shortcut ? " | " : "",
-                               has_shortcut ? accel_string : "",
+                               has_shortcut ? escaped_accel : "",
                                has_tooltip ? "\n" : "",
-                               has_tooltip ? tooltip : "");
+                               has_tooltip ? escaped_tooltip : "");
 
   store = GTK_LIST_STORE (gtk_tree_view_get_model (GTK_TREE_VIEW (private->results_list)));
   gtk_list_store_append (store, &iter);
@@ -380,6 +409,9 @@ action_search_add_to_results_list (GtkAction    *action,
   g_free (accel_string);
   g_free (markuptxt);
   g_free (label);
+  g_free (escaped_accel);
+  g_free (escaped_label);
+  g_free (escaped_tooltip);
 }
 
 static void
@@ -581,19 +613,19 @@ action_search_update_position (SearchDialog *private)
   screen_height = gdk_screen_get_height (screen);
   gdk_window_get_geometry (par_window, &parent_x, &parent_y, &parent_width, &parent_height, NULL);
 
-  if (config->search_dialog_width == -1)
+  if (config->search_dialog_width < 0)
     {
       config->search_dialog_width = parent_width / 2;
     }
-  else if (config->search_dialog_width > parent_width)
+  else if (config->search_dialog_width > screen_width)
     {
       config->search_dialog_width = parent_width;
     }
-  if (config->search_dialog_height == -1)
+  if (config->search_dialog_height < 0)
     {
       config->search_dialog_height = parent_height / 2;
     }
-  else if (config->search_dialog_height > parent_height)
+  else if (config->search_dialog_height > screen_height)
     {
       config->search_dialog_height = parent_height;
     }
@@ -602,7 +634,7 @@ action_search_update_position (SearchDialog *private)
     {
       config->search_dialog_x = parent_x + (parent_width - config->search_dialog_width) / 2;
     }
-  if (config->search_dialog_y == -1 || config->search_dialog_y + config->search_dialog_height > screen_height)
+  if (config->search_dialog_y < 0 || config->search_dialog_y + config->search_dialog_height > screen_height)
     {
       config->search_dialog_y = parent_y + (parent_height - config->search_dialog_height) / 2 ;
     }
@@ -617,47 +649,42 @@ action_search_update_position (SearchDialog *private)
 void
 action_search_finalizer (SearchDialog *private)
 {
-  gint           x, y, width, height;
-  GimpGuiConfig *config = private->config;
-
-  gtk_window_get_size (GTK_WINDOW (private->dialog), &width, &height);
-  gtk_window_get_position (GTK_WINDOW (private->dialog), &x, &y);
-
-  if (x < 0)
-    {
-      x = 0;
-    }
-  if (y < 0)
-    {
-      y = 0;
-    }
-  config->search_dialog_x = x;
-  config->search_dialog_y = y;
-
   gtk_widget_destroy (private->dialog);
 }
 
 static gboolean
-quit_button_clicked  (GtkWidget    *widget,
-                      GdkEvent     *event,
-                      SearchDialog *private)
+window_configured (GtkWindow    *window,
+                   GdkEvent     *event,
+                   SearchDialog *private)
 {
-  action_search_finalizer (private);
-
-  return TRUE;
-}
-
-static void
-size_allocated (GtkWidget    *widget,
-                GdkRectangle *rec,
-                SearchDialog *private)
-{
-  private->config->search_dialog_width = rec->width;
-
-  if (gtk_widget_get_visible  (private->list_view))
+  if (event->type == GDK_CONFIGURE &&
+      gtk_widget_get_visible (GTK_WIDGET (window)))
     {
-      private->config->search_dialog_height = rec->height;
+      GimpGuiConfig *config = private->config;
+      gint           x, y, width, height;
+
+      /* I don't use coordinates of GdkEventConfigure, because they are
+         relative to the parent window. */
+      gtk_window_get_position (window, &x, &y);
+      if (x < 0)
+        {
+          x = 0;
+        }
+      if (y < 0)
+        {
+          y = 0;
+        }
+      config->search_dialog_x = x;
+      config->search_dialog_y = y;
+
+      gtk_window_get_size (GTK_WINDOW (private->dialog), &width, &height);
+      config->search_dialog_width = width;
+      if (gtk_widget_get_visible  (private->list_view))
+        {
+          config->search_dialog_height = height;
+        }
     }
+  return FALSE;
 }
 
 static gboolean
