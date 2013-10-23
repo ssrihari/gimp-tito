@@ -195,7 +195,7 @@ gimp_action_history_search (const gchar         *keyword,
       if (! gtk_action_get_sensitive (action) && ! config->search_show_unavailable)
         continue;
 
-      if (match_func (action, keyword))
+      if (match_func (action, keyword, NULL))
         search_result = g_list_prepend (search_result, g_object_ref (action));
     }
 

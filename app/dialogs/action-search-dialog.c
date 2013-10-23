@@ -66,14 +66,16 @@ static gboolean     action_search_view_accel_find_func     (GtkAccelKey         
                                                             gpointer            data);
 static gchar*       action_search_find_accel_label         (GtkAction          *action);
 static void         action_search_add_to_results_list      (GtkAction          *action,
-                                                            SearchDialog       *private);
+                                                            SearchDialog       *private,
+                                                            gint                section);
 static void         action_search_run_selected             (SearchDialog       *private);
 static void         action_search_history_and_actions      (const gchar       *keyword,
                                                             SearchDialog      *private);
 static gboolean     action_fuzzy_match                     (gchar             *string,
                                                             gchar             *key);
 static gboolean     action_search_match_keyword            (GtkAction         *action,
-                                                            const gchar*       keyword);
+                                                            const gchar*       keyword,
+                                                            gint              *section);
 static void         action_search_update_position          (SearchDialog      *private);
 
 static void         action_search_finalizer                (SearchDialog      *private);
@@ -93,6 +95,7 @@ enum ResultColumns {
   RESULT_DATA,
   RESULT_ACTION,
   IS_SENSITIVE,
+  RESULT_SECTION,
   N_COL
 };
 
@@ -198,7 +201,7 @@ key_released (GtkWidget    *widget,
                          private->config->search_dialog_height);
       gtk_list_store_clear (GTK_LIST_STORE (gtk_tree_view_get_model (GTK_TREE_VIEW (private->results_list))));
       gtk_widget_show_all (private->list_view);
-      action_search_history_and_actions (" ", private);
+      action_search_history_and_actions (NULL, private);
       gtk_tree_selection_select_path (gtk_tree_view_get_selection (GTK_TREE_VIEW (private->results_list)),
                                       gtk_tree_path_new_from_string ("0"));
 
@@ -340,10 +343,13 @@ action_search_find_accel_label (GtkAction *action)
 
 static void
 action_search_add_to_results_list (GtkAction    *action,
-                                   SearchDialog *private)
+                                   SearchDialog *private,
+                                   gint          section)
 {
   GtkTreeIter   iter;
+  GtkTreeIter   next_section;
   GtkListStore *store;
+  GtkTreeModel *model;
   gchar        *markuptxt;
   gchar        *label;
   gchar        *escaped_label = NULL;
@@ -397,12 +403,38 @@ action_search_add_to_results_list (GtkAction    *action,
                                has_tooltip ? "\n" : "",
                                has_tooltip ? escaped_tooltip : "");
 
-  store = GTK_LIST_STORE (gtk_tree_view_get_model (GTK_TREE_VIEW (private->results_list)));
-  gtk_list_store_append (store, &iter);
+  model = gtk_tree_view_get_model (GTK_TREE_VIEW (private->results_list));
+  store = GTK_LIST_STORE (model);
+  if (gtk_tree_model_get_iter_first (model, &next_section))
+    {
+      while (TRUE)
+        {
+          gint iter_section;
+
+          gtk_tree_model_get (model, &next_section,
+                              RESULT_SECTION, &iter_section, -1);
+          if (iter_section > section)
+            {
+              gtk_list_store_insert_before (store, &iter, &next_section);
+              break;
+            }
+          else if (! gtk_tree_model_iter_next (model, &next_section))
+            {
+              gtk_list_store_append (store, &iter);
+              break;
+            }
+        }
+    }
+  else
+    {
+      gtk_list_store_append (store, &iter);
+    }
+
   gtk_list_store_set (store, &iter,
                      RESULT_ICON, stock_id,
                      RESULT_DATA, markuptxt,
                      RESULT_ACTION, action,
+                     RESULT_SECTION, section,
                      IS_SENSITIVE, gtk_action_get_sensitive (action),
                      -1);
 
@@ -450,7 +482,7 @@ action_search_history_and_actions (const gchar  *keyword,
 
   manager = gimp_ui_managers_from_name ("<Image>")->data;
 
-  if (strcmp (keyword, "") == 0)
+  if (g_strcmp0 (keyword, "") == 0)
     return;
 
   history_actions = gimp_action_history_search (keyword,
@@ -460,7 +492,7 @@ action_search_history_and_actions (const gchar  *keyword,
   /* First put on top of the list any matching action of user history. */
   for (list = history_actions; list; list = g_list_next (list))
     {
-      action_search_add_to_results_list (GTK_ACTION (list->data), private);
+      action_search_add_to_results_list (GTK_ACTION (list->data), private, 0);
     }
 
   /* Now check other actions. */
@@ -477,10 +509,10 @@ action_search_history_and_actions (const gchar  *keyword,
 
       for (list2 = actions; list2; list2 = g_list_next (list2))
         {
-          GList       *list3;
           const gchar *name;
           GtkAction   *action       = list2->data;
           gboolean     is_redundant = FALSE;
+          gint         section;
 
           name = gtk_action_get_name (action);
 
@@ -493,8 +525,10 @@ action_search_history_and_actions (const gchar  *keyword,
           if (! gtk_action_get_sensitive (action) && ! private->config->search_show_unavailable)
             continue;
 
-          if (action_search_match_keyword (action, keyword))
+          if (action_search_match_keyword (action, keyword, &section))
             {
+              GList *list3;
+
               /* A matching action. Check if we have not already added it as an history action. */
               for (list3 = history_actions; list3; list3 = g_list_next (list3))
                 {
@@ -506,7 +540,9 @@ action_search_history_and_actions (const gchar  *keyword,
                 }
 
               if (! is_redundant)
-                action_search_add_to_results_list (action, private);
+                {
+                  action_search_add_to_results_list (action, private, section);
+                }
             }
         }
 
@@ -536,14 +572,27 @@ action_fuzzy_match (gchar *string,
 }
 
 static gboolean
-action_search_match_keyword (GtkAction *action,
-                             const gchar* keyword)
+action_search_match_keyword (GtkAction   *action,
+                             const gchar *keyword,
+                             gint        *section)
 {
   gboolean  matched = FALSE;
-  gchar    *key     = g_strdup (keyword);
+  gchar    *key;
   gchar    *label;
   gint      i;
 
+  if (keyword == NULL)
+    {
+      /* As a special exception, a NULL keyword means
+         any action matches. */
+      if (section)
+        {
+          *section = 0;
+        }
+      return TRUE;
+    }
+
+  key   = g_strdup (keyword);
   label = gimp_strip_uline (gtk_action_get_label (action));
 
   for (i = 0 ; i < strlen (label); i++)
@@ -565,17 +614,31 @@ action_search_match_keyword (GtkAction *action,
           space_pos++;
 
           if (key[0] == label[0] && key[1] == *space_pos)
-            matched = TRUE;
+            {
+              matched = TRUE;
+              if (section)
+                {
+                  *section = 1;
+                }
+            }
         }
     }
 
   if (! matched)
     {
-      if (strstr (label, key) || action_fuzzy_match (label, key))
+      gchar *substr;
+
+      substr = strstr (label, key);
+      if (substr)
         {
           matched = TRUE;
+          if (section)
+            {
+              /* If the substring is the label start, this is a nicer match. */
+              *section = (substr == label)? 1 : 2;
+            }
         }
-      else if (strlen (key) > 2 || strcmp (key, " ") == 0)
+      else if (strlen (key) > 2)
         {
           if (gtk_action_get_tooltip (action)!= NULL)
             {
@@ -585,9 +648,23 @@ action_search_match_keyword (GtkAction *action,
                 tooltip[i] = tolower (tooltip[i]);
 
               if (strstr (tooltip, key))
-                matched = TRUE;
+                {
+                  matched = TRUE;
+                  if (section)
+                    {
+                      *section = 3;
+                    }
+                }
 
               g_free (tooltip);
+            }
+        }
+      if (! matched && action_fuzzy_match (label, key))
+        {
+          matched = TRUE;
+          if (section)
+            {
+              *section = 4;
             }
         }
     }
@@ -738,7 +815,7 @@ action_search_setup_results_list (GtkWidget **results_list,
 
   *list_view = GTK_WIDGET (gtk_scrolled_window_new (NULL, NULL));
   store = gtk_list_store_new (N_COL, G_TYPE_STRING, G_TYPE_STRING,
-                              GTK_TYPE_ACTION, G_TYPE_BOOLEAN);
+                              GTK_TYPE_ACTION, G_TYPE_BOOLEAN, G_TYPE_INT);
   *results_list = GTK_WIDGET (gtk_tree_view_new_with_model (GTK_TREE_MODEL (store)));
   gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (*results_list), FALSE);
 

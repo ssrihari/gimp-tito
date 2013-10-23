@@ -21,7 +21,8 @@
 #define __GIMP_ACTION_HISTORY_H__
 
 typedef gboolean   (* GimpActionMatchFunc)       (GtkAction           *action,
-                                                  const gchar*         keyword);
+                                                  const gchar         *keyword,
+                                                  gint                *section);
 
 void       gimp_action_history_init              (GimpGuiConfig       *config);
 void       gimp_action_history_exit              (GimpGuiConfig       *config);
