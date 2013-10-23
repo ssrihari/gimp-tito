@@ -132,9 +132,12 @@ gimp_action_history_activate_callback (GtkAction *action,
   action_name = gtk_action_get_name (action);
 
   /* Some specific actions are of no log interest. */
-  if (g_str_has_suffix (action_name, "-menu")  ||
-      g_str_has_suffix (action_name, "-popup") ||
-      g_str_has_prefix (action_name, "context-"))
+  if (g_str_has_suffix (action_name, "-menu")           ||
+      g_str_has_suffix (action_name, "-popup")          ||
+      g_str_has_prefix (action_name, "context-")        ||
+      g_str_has_prefix (action_name, "plug-in-recent-") ||
+      g_strcmp0 (action_name, "plug-in-repeat") == 0    ||
+      g_strcmp0 (action_name, "plug-in-reshow") == 0)
     return;
 
   for (actions = history; actions; actions = g_list_next (actions))
